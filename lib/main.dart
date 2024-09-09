@@ -1,10 +1,16 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_foreground_service/flutter_foreground_service.dart';
 import 'dart:async';
 
 import 'package:pedometer/pedometer.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized;
+  WidgetsFlutterBinding.ensureInitialized();
+  //if(Platform.isAndroid) {ForegroundService().start();}
+
   runApp(const MovementTrackerApp());
 }
 
@@ -55,16 +61,22 @@ class MovementTrackerAppState extends State<MovementTrackerApp> {
     });
   }
 
-  void initPlatformState() {
-    _pedestrianStatusStream = Pedometer.pedestrianStatusStream;
-    _pedestrianStatusStream
-        .listen(onPedestrianStatusChanged)
-        .onError(onPedestrianStatusError);
+  Future<void> initPlatformState() async {
+    final activityPermission = await Permission.activityRecognition.request();
 
-    _stepCountStream = Pedometer.stepCountStream;
-    _stepCountStream.listen(onStepCount).onError(onStepCountError);
+    if (activityPermission.isGranted) {
+      _pedestrianStatusStream = Pedometer.pedestrianStatusStream;
+      _pedestrianStatusStream
+          .listen(onPedestrianStatusChanged)
+          .onError(onPedestrianStatusError);
 
-    if (!mounted) return;
+      _stepCountStream = Pedometer.stepCountStream;
+      _stepCountStream.listen(onStepCount).onError(onStepCountError);
+
+      if (!mounted) return;
+    } else {
+      onPedestrianStatusError('Activity permission is not granted');
+    }
   }
 
   @override
