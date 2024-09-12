@@ -1,11 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_foreground_service/flutter_foreground_service.dart';
+import 'package:flutter_movement_tracker/services/pedometer_service.dart';
 import 'dart:async';
 
 import 'package:pedometer/pedometer.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,61 +19,30 @@ class MovementTrackerApp extends StatefulWidget {
 }
 
 class MovementTrackerAppState extends State<MovementTrackerApp> {
-  late Stream<StepCount> _stepCountStream;
-  late Stream<PedestrianStatus> _pedestrianStatusStream;
-  String _status = 'Unknown', _steps = '0';
+  final pedometerService = PedometerService();
+  StreamController<StepCount> stepCountStream = StreamController<StepCount>();
+  StreamController<PedestrianStatus> pedestrianStatusStream =
+      StreamController<PedestrianStatus>();
 
   @override
   void initState() {
     super.initState();
-    initPlatformState();
-  }
 
-  void onStepCount(StepCount event) {
-    debugPrint('Step Count event: $event');
-    setState(() {
-      _steps = event.steps.toString();
+    pedometerService.initPlatformState().then((_) {
+      pedometerService.stepCountStream.listen((data) {
+        stepCountStream.add(data);
+      });
+      pedometerService.pedestrianStatusStream.listen((data) {
+        pedestrianStatusStream.add(data);
+      });
     });
   }
 
-  void onPedestrianStatusChanged(PedestrianStatus event) {
-    debugPrint('Pedestrian Status event: $event');
-    setState(() {
-      _status = event.status;
-    });
-  }
-
-  void onPedestrianStatusError(error) {
-    debugPrint('onPedestrianStatusError: $error');
-    setState(() {
-      _status = 'Pedestrian Status not available';
-    });
-    debugPrint(_status);
-  }
-
-  void onStepCountError(error) {
-    debugPrint('onStepCountError: $error');
-    setState(() {
-      _steps = 'Step Count not available';
-    });
-  }
-
-  Future<void> initPlatformState() async {
-    final activityPermission = await Permission.activityRecognition.request();
-
-    if (activityPermission.isGranted) {
-      _pedestrianStatusStream = Pedometer.pedestrianStatusStream;
-      _pedestrianStatusStream
-          .listen(onPedestrianStatusChanged)
-          .onError(onPedestrianStatusError);
-
-      _stepCountStream = Pedometer.stepCountStream;
-      _stepCountStream.listen(onStepCount).onError(onStepCountError);
-
-      if (!mounted) return;
-    } else {
-      onPedestrianStatusError('Activity permission is not granted');
-    }
+  @override
+  void dispose() {
+    stepCountStream.close();
+    pedestrianStatusStream.close();
+    super.dispose();
   }
 
   @override
@@ -97,12 +63,16 @@ class MovementTrackerAppState extends State<MovementTrackerApp> {
                   'Steps Taken:',
                   style: TextStyle(fontSize: 30),
                 ),
-                Text(
-                  _steps,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      fontSize: 60, fontWeight: FontWeight.bold),
-                ),
+                StreamBuilder<StepCount>(
+                    stream: stepCountStream.stream,
+                    builder: (context, snapshot) {
+                      return Text(
+                        snapshot.data?.steps.toString() ?? '0',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            fontSize: 60, fontWeight: FontWeight.bold),
+                      );
+                    }),
                 const Divider(
                   height: 50,
                   thickness: 0,
@@ -112,23 +82,35 @@ class MovementTrackerAppState extends State<MovementTrackerApp> {
                   'Pedestrian Status:',
                   style: TextStyle(fontSize: 30),
                 ),
-                Icon(
-                  _status == 'walking'
-                      ? Icons.directions_walk
-                      : _status == 'stopped'
-                          ? Icons.accessibility_new
-                          : Icons.error,
-                  size: 100,
-                  color: _status == 'walking' ? Colors.green : Colors.red,
-                ),
-                Center(
-                  child: Text(
-                    _status,
-                    style: _status == 'walking' || _status == 'stopped'
-                        ? const TextStyle(fontSize: 30)
-                        : const TextStyle(fontSize: 30, color: Colors.red),
-                  ),
-                )
+                StreamBuilder<PedestrianStatus>(
+                    stream: pedestrianStatusStream.stream,
+                    builder: (context, snapshot) {
+                      return Icon(
+                        snapshot.data?.status == 'walking'
+                            ? Icons.directions_walk
+                            : snapshot.data?.status == 'stopped'
+                                ? Icons.accessibility_new
+                                : Icons.error,
+                        size: 100,
+                        color: snapshot.data?.status == 'walking'
+                            ? Colors.green
+                            : Colors.red,
+                      );
+                    }),
+                StreamBuilder<PedestrianStatus>(
+                    stream: pedestrianStatusStream.stream,
+                    builder: (context, snapshot) {
+                      return Center(
+                        child: Text(
+                          snapshot.data?.status ?? 'Unknown',
+                          style: snapshot.data?.status == 'walking' ||
+                                  snapshot.data?.status == 'stopped'
+                              ? const TextStyle(fontSize: 30)
+                              : const TextStyle(
+                                  fontSize: 30, color: Colors.red),
+                        ),
+                      );
+                    }),
               ],
             ),
           ),
