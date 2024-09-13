@@ -56,8 +56,10 @@ class MovementTrackerAppState extends State<MovementTrackerApp> {
         body: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 20.0,
               children: <Widget>[
                 const Text(
                   'Steps Taken:',
@@ -83,46 +85,33 @@ class MovementTrackerAppState extends State<MovementTrackerApp> {
                   style: TextStyle(fontSize: 30),
                 ),
                 StreamBuilder<PedestrianStatus>(
-                    stream: pedestrianStatusStream.stream,
-                    builder: (context, snapshot) {
-                      return Column(
-                        children: [
-                          Icon(
-                            snapshot.data?.status == 'walking'
-                                ? Icons.directions_walk
-                                : snapshot.data?.status == 'stopped'
-                                    ? Icons.accessibility_new
-                                    : Icons.error,
-                            size: 100,
-                            color: snapshot.data?.status == 'walking'
-                                ? Colors.green
-                                : Colors.red,
-                          ),
-                          Text(
-                            snapshot.data?.status ?? 'Unknown',
-                            style: snapshot.data?.status == 'walking' ||
-                                    snapshot.data?.status == 'stopped'
-                                ? const TextStyle(fontSize: 30)
-                                : const TextStyle(
-                                    fontSize: 30, color: Colors.red),
-                          )
-                        ],
-                      );
-                    }),
-                // StreamBuilder<PedestrianStatus>(
-                //     stream: pedestrianStatusStream.stream,
-                //     builder: (context, snapshot) {
-                //       return Center(
-                //         child: Text(
-                //           snapshot.data?.status ?? 'Unknown',
-                //           style: snapshot.data?.status == 'walking' ||
-                //                   snapshot.data?.status == 'stopped'
-                //               ? const TextStyle(fontSize: 30)
-                //               : const TextStyle(
-                //                   fontSize: 30, color: Colors.red),
-                //         ),
-                //       );
-                //     }),
+                  stream: pedestrianStatusStream.stream,
+                  builder: (context, snapshot) {
+                    return Column(
+                      children: [
+                        Icon(
+                          snapshot.data?.status == 'walking'
+                              ? Icons.directions_walk
+                              : snapshot.data?.status == 'stopped'
+                                  ? Icons.accessibility_new
+                                  : Icons.error,
+                          size: 100,
+                          color: snapshot.data?.status == 'walking'
+                              ? Colors.green
+                              : Colors.red,
+                        ),
+                        Text(
+                          snapshot.data?.status ?? 'Unknown',
+                          style: snapshot.data?.status == 'walking' ||
+                                  snapshot.data?.status == 'stopped'
+                              ? const TextStyle(fontSize: 30)
+                              : const TextStyle(
+                                  fontSize: 30, color: Colors.red),
+                        )
+                      ],
+                    );
+                  },
+                ),
               ],
             ),
           ),
