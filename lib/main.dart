@@ -85,32 +85,44 @@ class MovementTrackerAppState extends State<MovementTrackerApp> {
                 StreamBuilder<PedestrianStatus>(
                     stream: pedestrianStatusStream.stream,
                     builder: (context, snapshot) {
-                      return Icon(
-                        snapshot.data?.status == 'walking'
-                            ? Icons.directions_walk
-                            : snapshot.data?.status == 'stopped'
-                                ? Icons.accessibility_new
-                                : Icons.error,
-                        size: 100,
-                        color: snapshot.data?.status == 'walking'
-                            ? Colors.green
-                            : Colors.red,
+                      return Column(
+                        children: [
+                          Icon(
+                            snapshot.data?.status == 'walking'
+                                ? Icons.directions_walk
+                                : snapshot.data?.status == 'stopped'
+                                    ? Icons.accessibility_new
+                                    : Icons.error,
+                            size: 100,
+                            color: snapshot.data?.status == 'walking'
+                                ? Colors.green
+                                : Colors.red,
+                          ),
+                          Text(
+                            snapshot.data?.status ?? 'Unknown',
+                            style: snapshot.data?.status == 'walking' ||
+                                    snapshot.data?.status == 'stopped'
+                                ? const TextStyle(fontSize: 30)
+                                : const TextStyle(
+                                    fontSize: 30, color: Colors.red),
+                          )
+                        ],
                       );
                     }),
-                StreamBuilder<PedestrianStatus>(
-                    stream: pedestrianStatusStream.stream,
-                    builder: (context, snapshot) {
-                      return Center(
-                        child: Text(
-                          snapshot.data?.status ?? 'Unknown',
-                          style: snapshot.data?.status == 'walking' ||
-                                  snapshot.data?.status == 'stopped'
-                              ? const TextStyle(fontSize: 30)
-                              : const TextStyle(
-                                  fontSize: 30, color: Colors.red),
-                        ),
-                      );
-                    }),
+                // StreamBuilder<PedestrianStatus>(
+                //     stream: pedestrianStatusStream.stream,
+                //     builder: (context, snapshot) {
+                //       return Center(
+                //         child: Text(
+                //           snapshot.data?.status ?? 'Unknown',
+                //           style: snapshot.data?.status == 'walking' ||
+                //                   snapshot.data?.status == 'stopped'
+                //               ? const TextStyle(fontSize: 30)
+                //               : const TextStyle(
+                //                   fontSize: 30, color: Colors.red),
+                //         ),
+                //       );
+                //     }),
               ],
             ),
           ),
