@@ -5,17 +5,15 @@ import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class PedometerService {
-  late Stream<StepCount> _stepCountStream;
-  late Stream<PedestrianStatus> _pedestrianStatusStream;
+  static late Stream<StepCount> stepCountStream;
+  static late Stream<PedestrianStatus> pedestrianStatusStream;
   String _status = 'Unknown', _steps = '0';
 
   String get status => _status;
   String get steps => _steps;
-  Stream<StepCount> get stepCountStream => _stepCountStream;
-  Stream<PedestrianStatus> get pedestrianStatusStream =>
-      _pedestrianStatusStream;
-
-  // StreamSubscription<String> get st =>_stepCountStream.;
+  // Stream<StepCount> get stepCountStream => _stepCountStream;
+  // Stream<PedestrianStatus> get pedestrianStatusStream =>
+  //     _pedestrianStatusStream;
 
   void onStepCount(StepCount event) {
     debugPrint('Step Count event: $event');
@@ -42,18 +40,18 @@ class PedometerService {
   }
 
   Future<void> initPlatformState() async {
-    final activityPermission = await Permission.activityRecognition.request();
+    //final activityPermission = await Permission.activityRecognition.request();
 
-    if (activityPermission.isGranted) {
-      _pedestrianStatusStream = Pedometer.pedestrianStatusStream;
-      _pedestrianStatusStream
-          .listen(onPedestrianStatusChanged)
-          .onError(onPedestrianStatusError);
+    //if (activityPermission.isGranted) {
+    pedestrianStatusStream = Pedometer.pedestrianStatusStream;
+    pedestrianStatusStream
+        .listen(onPedestrianStatusChanged)
+        .onError(onPedestrianStatusError);
 
-      _stepCountStream = Pedometer.stepCountStream;
-      _stepCountStream.listen(onStepCount).onError(onStepCountError);
-    } else {
-      onPedestrianStatusError('Activity permission is not granted');
-    }
+    stepCountStream = Pedometer.stepCountStream;
+    stepCountStream.listen(onStepCount).onError(onStepCountError);
+    // } else {
+    //   onPedestrianStatusError('Activity permission is not granted');
+    // }
   }
 }
